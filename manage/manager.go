@@ -210,7 +210,7 @@ func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType,
 		icfg := m.grantConfig(oauth2.Implicit)
 		aexp := icfg.AccessTokenExp
 		if cli.GetRefreshTokenDuration() > 0 {
-			aexp = cli.GetRefreshTokenDuration()
+			aexp = cli.GetRefreshTokenDuration() * time.Second
 		}
 		ti.SetAccessCreateAt(createAt)
 		ti.SetAccessExpiresIn(aexp)
@@ -360,12 +360,12 @@ func (m *Manager) GenerateAccessToken(ctx context.Context, gt oauth2.GrantType, 
 	// }
 
 	//使用Client中的信息在覆盖...
-	ti.SetAccessExpiresIn(cli.GetTokenDuration())
+	ti.SetAccessExpiresIn(cli.GetTokenDuration() * time.Second)
 	//是否需要refresh_token通过自定义Client信息中获取
 	isGenRefresh := ContainsGrantType(cli.GetGrantTypes(), oauth2.Refreshing)
 	if isGenRefresh {
 		ti.SetRefreshCreateAt(createAt)
-		ti.SetRefreshExpiresIn(cli.GetRefreshTokenDuration())
+		ti.SetRefreshExpiresIn(cli.GetRefreshTokenDuration() * time.Second)
 	}
 
 	td := &oauth2.GenerateBasic{
@@ -437,11 +437,11 @@ func (m *Manager) RefreshAccessToken(ctx context.Context, tgr *oauth2.TokenGener
 	ti.SetAccessCreateAt(td.CreateAt)
 
 	if cli.GetTokenDuration() > 0 {
-		ti.SetAccessExpiresIn(cli.GetTokenDuration())
+		ti.SetAccessExpiresIn(cli.GetTokenDuration() * time.Second)
 	}
 
 	if cli.GetRefreshTokenDuration() > 0 {
-		ti.SetRefreshExpiresIn(cli.GetRefreshTokenDuration())
+		ti.SetRefreshExpiresIn(cli.GetRefreshTokenDuration() * time.Second)
 	}
 
 	// 每次都重新计算时间...无限时长
