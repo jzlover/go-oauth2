@@ -12,9 +12,15 @@ import (
 	"github.com/jzlover/go-oauth2/errors"
 )
 
+type (
+	GenerateAuthoritiesHandler func(data *oauth2.GenerateBasic) ([]string, error)
+)
+
 // JWTAccessClaims jwt claims
 type JWTAccessClaims struct {
 	jwt.StandardClaims
+	Authorities []string `json:"authorities,omitempty"`
+	Sign        string   `json:"sign,omitempty"`
 }
 
 // Valid claims verification
@@ -39,16 +45,31 @@ type JWTAccessGenerate struct {
 	SignedKeyID  string
 	SignedKey    []byte
 	SignedMethod jwt.SigningMethod
+
+	generateAuthoritiesHandler GenerateAuthoritiesHandler
+}
+
+func (a *JWTAccessGenerate) SetGenerateAuthoritiesHandler(handler GenerateAuthoritiesHandler) {
+	a.generateAuthoritiesHandler = handler
 }
 
 // Token based on the UUID generated token
 func (a *JWTAccessGenerate) Token(ctx context.Context, data *oauth2.GenerateBasic, isGenRefresh bool) (string, string, error) {
+
+	var authorities []string
+	var err error
+	if a.generateAuthoritiesHandler != nil {
+		if authorities, err = a.generateAuthoritiesHandler(data); err != nil {
+			return "", "", err
+		}
+	}
 	claims := &JWTAccessClaims{
 		StandardClaims: jwt.StandardClaims{
 			Audience:  data.Client.GetID(),
 			Subject:   data.UserID,
 			ExpiresAt: data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix(),
 		},
+		Authorities: authorities,
 	}
 
 	token := jwt.NewWithClaims(a.SignedMethod, claims)
