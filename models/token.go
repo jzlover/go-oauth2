@@ -30,6 +30,7 @@ type Token struct {
 	RefreshCreateAt     time.Time     `bson:"RefreshCreateAt"`
 	RefreshExpiresIn    time.Duration `bson:"RefreshExpiresIn"`
 	Extension           url.Values    `bson:"Extension"`
+	Sign                string        `bson:"sign"`
 }
 
 // New create to token model instance
@@ -195,4 +196,13 @@ func (t *Token) GetExtension() url.Values {
 // SetExtension set extension of token
 func (t *Token) SetExtension(e url.Values) {
 	t.Extension = e
+}
+
+// SetRefreshExpiresIn the lifetime in seconds of the refresh token
+func (t *Token) GetSign() string {
+	return t.Sign
+}
+
+func (t *Token) SetSign(sign string) {
+	t.Sign = sign
 }

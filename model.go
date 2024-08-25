@@ -63,6 +63,9 @@ type (
 		SetRefreshCreateAt(time.Time)
 		GetRefreshExpiresIn() time.Duration
 		SetRefreshExpiresIn(time.Duration)
+
+		GetSign() string
+		SetSign(string)
 	}
 
 	ExtendableTokenInfo interface {

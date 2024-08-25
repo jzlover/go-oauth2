@@ -9,6 +9,7 @@ import (
 	"github.com/jzlover/go-oauth2/errors"
 	"github.com/jzlover/go-oauth2/generates"
 	"github.com/jzlover/go-oauth2/models"
+	uuid "github.com/satori/go.uuid"
 )
 
 // NewDefaultManager create to default authorization management instance
@@ -40,6 +41,8 @@ type Manager struct {
 	accessGenerate    oauth2.AccessGenerate
 	tokenStore        oauth2.TokenStore
 	clientStore       oauth2.ClientStore
+
+	generateSignHandler GenerateSignHandler
 }
 
 // get grant type config
@@ -98,6 +101,11 @@ func (m *Manager) SetValidateURIHandler(handler ValidateURIHandler) {
 // SetExtractExtensionHandler set the token extension extractor
 func (m *Manager) SetExtractExtensionHandler(handler ExtractExtensionHandler) {
 	m.extractExtension = handler
+}
+
+// SetExtractExtensionHandler set the token extension extractor
+func (m *Manager) SetGenerateSignHandler(handler GenerateSignHandler) {
+	m.generateSignHandler = handler
 }
 
 // MapAuthorizeGenerate mapping the authorize code generate interface
@@ -367,6 +375,16 @@ func (m *Manager) GenerateAccessToken(ctx context.Context, gt oauth2.GrantType, 
 		TokenInfo: ti,
 		Request:   tgr.Request,
 	}
+
+	var sign string = uuid.NewV1().String()
+	if m.generateSignHandler != nil {
+		sign, err = m.generateSignHandler(td)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	ti.Sign = sign
 
 	av, rv, err := m.accessGenerate.Token(ctx, td, isGenRefresh)
 	if err != nil {

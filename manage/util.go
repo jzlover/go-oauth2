@@ -12,6 +12,8 @@ type (
 	// ValidateURIHandler validates that redirectURI is contained in baseURI
 	ValidateURIHandler      func(baseURI, redirectURI string) error
 	ExtractExtensionHandler func(*oauth2.TokenGenerateRequest, oauth2.ExtendableTokenInfo)
+
+	GenerateSignHandler func(*oauth2.GenerateBasic) (string, error)
 )
 
 // DefaultValidateURI validates that redirectURI is contained in baseURI
