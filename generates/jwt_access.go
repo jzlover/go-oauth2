@@ -70,6 +70,7 @@ func (a *JWTAccessGenerate) Token(ctx context.Context, data *oauth2.GenerateBasi
 			ExpiresAt: data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix(),
 		},
 		Authorities: authorities,
+		Sign:        data.TokenInfo.GetSign(),
 	}
 
 	token := jwt.NewWithClaims(a.SignedMethod, claims)
