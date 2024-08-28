@@ -86,13 +86,13 @@ func (s *Server) redirect(w http.ResponseWriter, req *AuthorizeRequest, data map
 	return nil
 }
 
-func (s *Server) tokenError(w http.ResponseWriter, err error) error {
+func (s *Server) tokenError(w http.ResponseWriter, err error, gt oauth2.GrantType) error {
 	data, statusCode, header := s.GetErrorData(err)
-	return s.token(w, data, header, statusCode)
+	return s.token(w, data, header, gt, statusCode)
 }
 
-func (s *Server) token(w http.ResponseWriter, data map[string]interface{}, header http.Header, statusCode ...int) error {
-	if fn := s.ResponseTokenHandler; fn != nil {
+func (s *Server) token(w http.ResponseWriter, data map[string]interface{}, header http.Header, gt oauth2.GrantType, statusCode ...int) error {
+	if fn := s.ResponseTokenHandler; fn != nil && gt != oauth2.AuthorizationCode {
 		return fn(w, data, header, statusCode...)
 	}
 	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
@@ -508,15 +508,15 @@ func (s *Server) HandleTokenRequest(w http.ResponseWriter, r *http.Request) erro
 
 	gt, tgr, err := s.ValidationTokenRequest(r)
 	if err != nil {
-		return s.tokenError(w, err)
+		return s.tokenError(w, err, gt)
 	}
 
 	ti, err := s.GetAccessToken(ctx, gt, tgr)
 	if err != nil {
-		return s.tokenError(w, err)
+		return s.tokenError(w, err, gt)
 	}
 
-	return s.token(w, s.GetTokenData(ti), nil)
+	return s.token(w, s.GetTokenData(ti), nil, gt)
 }
 
 // GetErrorData get error response data
