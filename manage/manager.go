@@ -459,8 +459,12 @@ func (m *Manager) RefreshAccessToken(ctx context.Context, tgr *oauth2.TokenGener
 	}
 
 	ti.SetAccess(tv)
-	if rv != "" {
-		ti.SetRefresh(rv)
+	if rcfg.IsReuseOldRefreshToken {
+		ti.SetRefresh(oldRefresh)
+	} else {
+		if rv != "" {
+			ti.SetRefresh(rv)
+		}
 	}
 
 	if err := m.tokenStore.Create(ctx, ti); err != nil {
@@ -474,7 +478,7 @@ func (m *Manager) RefreshAccessToken(ctx context.Context, tgr *oauth2.TokenGener
 		}
 	}
 
-	if rcfg.IsRemoveRefreshing && rv != "" {
+	if rcfg.IsRemoveRefreshing && rv != "" && !rcfg.IsReuseOldRefreshToken {
 		// remove the old refresh token
 		if err := m.tokenStore.RemoveByRefresh(ctx, oldRefresh); err != nil {
 			return nil, err
