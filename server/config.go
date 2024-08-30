@@ -20,7 +20,7 @@ type Config struct {
 // NewConfig create to configuration instance
 func NewConfig() *Config {
 	return &Config{
-		TokenType:            "Bearer",
+		TokenType:            "Bearer ",
 		AllowedResponseTypes: []oauth2.ResponseType{oauth2.Code, oauth2.Token},
 		AllowedGrantTypes: []oauth2.GrantType{
 			oauth2.AuthorizationCode,
