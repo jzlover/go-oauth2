@@ -22,6 +22,7 @@ type JWTAccessClaims struct {
 	Authorities []string `json:"authorities,omitempty"`
 	Sign        string   `json:"sign,omitempty"`
 	ClientId    string   `json:"cid,omitempty"`
+	Username    string   `json:"user_name,omitempty"`
 }
 
 // Valid claims verification
@@ -73,6 +74,7 @@ func (a *JWTAccessGenerate) Token(ctx context.Context, data *oauth2.GenerateBasi
 		Authorities: authorities,
 		Sign:        data.TokenInfo.GetSign(),
 		ClientId:    data.Client.GetID(),
+		Username:    data.UserID,
 	}
 
 	token := jwt.NewWithClaims(a.SignedMethod, claims)
