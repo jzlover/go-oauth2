@@ -15,7 +15,7 @@ import (
 type (
 	GenerateAuthoritiesHandler func(data *oauth2.GenerateBasic) ([]string, error)
 
-	GenerateClaimsHandler func(data *oauth2.GenerateBasic) jwt.Claims
+	GenerateClaimsHandler func(data *oauth2.GenerateBasic) (jwt.Claims, error)
 )
 
 type JWTAccessClaimsExt struct {
@@ -79,7 +79,10 @@ func (a *JWTAccessGenerate) Token(ctx context.Context, data *oauth2.GenerateBasi
 
 	var claims jwt.Claims
 	if a.generateClaimsHandler != nil {
-		claims = a.generateClaimsHandler(data)
+		claims, err = a.generateClaimsHandler(data)
+		if err != nil {
+			return "", "", err
+		}
 	} else {
 		claims = &JWTAccessClaims{
 			StandardClaims: jwt.StandardClaims{
