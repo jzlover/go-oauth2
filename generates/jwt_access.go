@@ -14,7 +14,13 @@ import (
 
 type (
 	GenerateAuthoritiesHandler func(data *oauth2.GenerateBasic) ([]string, error)
+
+	GenerateClaimsHandler func() jwt.Claims
 )
+
+type JWTAccessClaimsExt struct {
+	JWTAccessClaims
+}
 
 // JWTAccessClaims jwt claims
 type JWTAccessClaims struct {
@@ -49,6 +55,7 @@ type JWTAccessGenerate struct {
 	SignedMethod jwt.SigningMethod
 
 	generateAuthoritiesHandler GenerateAuthoritiesHandler
+	generateClaimsHandler      GenerateClaimsHandler
 }
 
 func (a *JWTAccessGenerate) SetGenerateAuthoritiesHandler(handler GenerateAuthoritiesHandler) {
@@ -65,16 +72,22 @@ func (a *JWTAccessGenerate) Token(ctx context.Context, data *oauth2.GenerateBasi
 			return "", "", err
 		}
 	}
-	claims := &JWTAccessClaims{
-		StandardClaims: jwt.StandardClaims{
-			Audience:  data.Client.GetID(),
-			Subject:   data.UserID,
-			ExpiresAt: data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix(),
-		},
-		Authorities: authorities,
-		Sign:        data.TokenInfo.GetSign(),
-		ClientId:    data.Client.GetID(),
-		Username:    data.UserID,
+
+	var claims jwt.Claims
+	if a.generateClaimsHandler != nil {
+		claims = a.generateClaimsHandler()
+	} else {
+		claims = &JWTAccessClaims{
+			StandardClaims: jwt.StandardClaims{
+				Audience:  data.Client.GetID(),
+				Subject:   data.UserID,
+				ExpiresAt: data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix(),
+			},
+			Authorities: authorities,
+			Sign:        data.TokenInfo.GetSign(),
+			ClientId:    data.Client.GetID(),
+			Username:    data.UserID,
+		}
 	}
 
 	token := jwt.NewWithClaims(a.SignedMethod, claims)
