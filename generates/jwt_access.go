@@ -13,8 +13,6 @@ import (
 )
 
 type (
-	GenerateAuthoritiesHandler func(data *oauth2.GenerateBasic) ([]string, error)
-
 	GenerateClaimsHandler func(data *oauth2.GenerateBasic) (jwt.Claims, error)
 )
 
@@ -25,10 +23,6 @@ type JWTAccessClaimsExt struct {
 // JWTAccessClaims jwt claims
 type JWTAccessClaims struct {
 	jwt.StandardClaims
-	Authorities []string `json:"authorities,omitempty"`
-	Sign        string   `json:"sign,omitempty"`
-	ClientId    string   `json:"cid,omitempty"`
-	Username    string   `json:"user_name,omitempty"`
 }
 
 // Valid claims verification
@@ -54,12 +48,7 @@ type JWTAccessGenerate struct {
 	SignedKey    []byte
 	SignedMethod jwt.SigningMethod
 
-	generateAuthoritiesHandler GenerateAuthoritiesHandler
-	generateClaimsHandler      GenerateClaimsHandler
-}
-
-func (a *JWTAccessGenerate) SetGenerateAuthoritiesHandler(handler GenerateAuthoritiesHandler) {
-	a.generateAuthoritiesHandler = handler
+	generateClaimsHandler GenerateClaimsHandler
 }
 
 func (a *JWTAccessGenerate) SetGenerateClaimsHandler(handler GenerateClaimsHandler) {
@@ -69,13 +58,7 @@ func (a *JWTAccessGenerate) SetGenerateClaimsHandler(handler GenerateClaimsHandl
 // Token based on the UUID generated token
 func (a *JWTAccessGenerate) Token(ctx context.Context, data *oauth2.GenerateBasic, isGenRefresh bool) (string, string, error) {
 
-	var authorities []string
 	var err error
-	if a.generateAuthoritiesHandler != nil {
-		if authorities, err = a.generateAuthoritiesHandler(data); err != nil {
-			return "", "", err
-		}
-	}
 
 	var claims jwt.Claims
 	if a.generateClaimsHandler != nil {
@@ -90,10 +73,6 @@ func (a *JWTAccessGenerate) Token(ctx context.Context, data *oauth2.GenerateBasi
 				Subject:   data.UserID,
 				ExpiresAt: data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix(),
 			},
-			Authorities: authorities,
-			Sign:        data.TokenInfo.GetSign(),
-			ClientId:    data.Client.GetID(),
-			Username:    data.UserID,
 		}
 	}
 
