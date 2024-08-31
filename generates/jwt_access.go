@@ -62,6 +62,10 @@ func (a *JWTAccessGenerate) SetGenerateAuthoritiesHandler(handler GenerateAuthor
 	a.generateAuthoritiesHandler = handler
 }
 
+func (a *JWTAccessGenerate) SetGenerateClaimsHandler(handler GenerateClaimsHandler) {
+	a.generateClaimsHandler = handler
+}
+
 // Token based on the UUID generated token
 func (a *JWTAccessGenerate) Token(ctx context.Context, data *oauth2.GenerateBasic, isGenRefresh bool) (string, string, error) {
 
